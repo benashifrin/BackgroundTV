@@ -1,0 +1,47 @@
+{
+  "name": "background-referral-tv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Electron app that runs a React animated background + QR/Video UI behind desktop icons (WorkerW).",
+  "main": "electron/main.js",
+  "scripts": {
+    "postinstall": "cd react-app && npm install",
+    "build:react": "cd react-app && npm run build",
+    "dev": "npm run build:react && electron .",
+    "dev:hot": "electron .",
+    "start": "electron .",
+    "build": "npm run build:react",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "electron": "31.7.5"
+  },
+  "optionalDependencies": {
+    "ffi-napi": "4.0.3",
+    "ref-napi": "3.0.3"
+  },
+  "devDependencies": {
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.example.livewallpaper",
+    "productName": "LiveWallpaper",
+    "files": [
+      "electron/**/*",
+      "react-app/dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    }
+  }
+}

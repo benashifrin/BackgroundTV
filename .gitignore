@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Vite
+react-app/dist/
+
+# Electron Builder
+dist/
+build/*
+!build/.keep
+!build/icon.ico
+
+# Env
+.env*
+

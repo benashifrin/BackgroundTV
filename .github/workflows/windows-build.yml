@@ -1,0 +1,30 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install deps (root + react)
+        run: npm ci
+      - name: Build React
+        run: npm run build:react
+      - name: Build Windows installer
+        run: npm run dist
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiveWallpaper-Windows
+          path: |
+            dist/*.exe
+            dist/*.msi
+
