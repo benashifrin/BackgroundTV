@@ -11,7 +11,7 @@
     "dev:hot": "electron .",
     "start": "electron .",
     "build": "npm run build:react",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder --publish never"
   },
   "dependencies": {},
   "optionalDependencies": {
