@@ -2,9 +2,20 @@
 // Creates fullscreen window and attaches to Windows desktop "WorkerW" (behind icons)
 
 const path = require('path');
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron');
+console.log('[electron] main starting');
 
 const isWin = process.platform === 'win32';
+const safeMode = process.env.SAFE_MODE === '1';
+console.log('[electron] isWin=', isWin, 'SAFE_MODE=', safeMode, 'NO_ATTACH=', process.env.NO_ATTACH);
+
+// In safe mode, disable GPU to avoid possible freezes with transparent fullscreen windows
+try {
+  if (safeMode) {
+    app.commandLine.appendSwitch('disable-gpu');
+    app.commandLine.appendSwitch('disable-gpu-compositing');
+  }
+} catch (_) {}
 
 // Win32 FFI to attach window to WorkerW
 let attachToWorkerw = async (win) => {
@@ -78,18 +89,60 @@ let attachToWorkerw = async (win) => {
 };
 
 let mainWindow;
+let tray = null;
+
+function createTray() {
+  try {
+    const iconPath = path.join(__dirname, '..', 'build', 'icon.ico');
+    const icon = nativeImage.createFromPath(iconPath);
+    tray = new Tray(icon && !icon.isEmpty() ? icon : nativeImage.createEmpty());
+    tray.setToolTip('LiveWallpaper');
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show Window',
+        click: () => {
+          try {
+            if (mainWindow) {
+              if (mainWindow.isMinimized()) mainWindow.restore();
+              mainWindow.show();
+              mainWindow.focus();
+            }
+          } catch (_) {}
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit (Ctrl+Alt+Q)',
+        click: () => { try { app.quit(); } catch (_) {} },
+      },
+    ]);
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      try {
+        if (!mainWindow) return;
+        if (mainWindow.isVisible()) {
+          mainWindow.hide();
+        } else {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      } catch (_) {}
+    });
+  } catch (_) {}
+}
 
 const createWindow = async () => {
+  console.log('[electron] creating BrowserWindow...');
   mainWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
-    frame: false,
-    fullscreen: true,
-    resizable: false,
-    transparent: true,                 // allow underlying desktop when not drawn
-    backgroundColor: '#00000000',      // fully transparent
-    show: false,                       // show after ready-to-show to avoid flicker
-    autoHideMenuBar: true,
+    width: safeMode ? 1280 : 1920,
+    height: safeMode ? 800 : 1080,
+    frame: safeMode ? true : false,
+    fullscreen: safeMode ? false : true,
+    resizable: safeMode ? true : false,
+    transparent: safeMode ? false : true,                 // avoid transparent fullscreen in safe mode
+    backgroundColor: safeMode ? '#000000' : '#00000000',  // solid in safe mode
+    show: false,                                          // show after ready-to-show to avoid flicker
+    autoHideMenuBar: !safeMode,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -102,18 +155,25 @@ const createWindow = async () => {
   // Load UI: dev server when provided, else built files
   const devUrl = process.env.VITE_DEV_SERVER_URL || process.env.ELECTRON_START_URL;
   if (devUrl) {
+    console.log('[electron] loading dev URL:', devUrl);
     await mainWindow.loadURL(devUrl);
   } else {
     const indexPath = path.join(__dirname, '..', 'react-app', 'dist', 'index.html');
+    console.log('[electron] loading file:', indexPath);
     await mainWindow.loadFile(indexPath);
   }
 
   mainWindow.once('ready-to-show', async () => {
+    console.log('[electron] ready-to-show');
     mainWindow.show();
 
     // Attach behind icons (WorkerW). Set NO_ATTACH=1 to keep interactive foreground mode.
-    if (process.env.NO_ATTACH !== '1') {
+    const shouldAttach = process.env.NO_ATTACH !== '1' && !app.isPackaged;
+    if (shouldAttach) {
+      console.log('[electron] attaching to WorkerW...');
       await attachToWorkerw(mainWindow);
+    } else {
+      console.log('[electron] skipping WorkerW attach (NO_ATTACH=1 or packaged)');
     }
   });
 
@@ -160,9 +220,13 @@ const createWindow = async () => {
 };
 
 app.whenReady().then(() => {
+  console.log('[electron] app ready');
   createWindow();
+  createTray();
+  try { globalShortcut.register('Control+Alt+Q', () => app.quit()); } catch (_) {}
 
   app.on('activate', () => {
+    console.log('[electron] app activate');
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });

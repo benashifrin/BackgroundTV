@@ -59,7 +59,7 @@ export default function Background({ theme = THEMES[0], fade = false, zIndex = 0
         from 0deg at 50% 50%,
         var(--c1), var(--c2), var(--c3), var(--c4), var(--c5), var(--c1)
       );
-      animation: rotate-flow-1 20s linear infinite;
+      /* static: no animation */
       transform-origin: center center;
     }
 
@@ -68,7 +68,7 @@ export default function Background({ theme = THEMES[0], fade = false, zIndex = 0
         from 180deg at 30% 70%,
         var(--c2), var(--c4), var(--c3), var(--c5), var(--c1), var(--c2)
       );
-      animation: rotate-flow-2 25s linear infinite reverse;
+      /* static: no animation */
       transform-origin: 30% 70%;
       opacity: 0.6;
     }
@@ -78,38 +78,12 @@ export default function Background({ theme = THEMES[0], fade = false, zIndex = 0
         from 90deg at 70% 30%,
         var(--c3), var(--c5), var(--c2), var(--c4), var(--c1), var(--c3)
       );
-      animation: rotate-flow-3 30s linear infinite;
+      /* static: no animation */
       transform-origin: 70% 30%;
       opacity: 0.4;
     }
 
-    @keyframes rotate-flow-1 {
-      0%   { transform: rotate(0deg)   scale(1)   translate(0%, 0%);   filter: blur(40px) hue-rotate(0deg); }
-      25%  { transform: rotate(90deg)  scale(1.1) translate(-5%, 5%);  filter: blur(45px) hue-rotate(90deg); }
-      50%  { transform: rotate(180deg) scale(1)   translate(0%, 0%);   filter: blur(40px) hue-rotate(180deg); }
-      75%  { transform: rotate(270deg) scale(1.1) translate(5%, -5%);  filter: blur(45px) hue-rotate(270deg); }
-      100% { transform: rotate(360deg) scale(1)   translate(0%, 0%);   filter: blur(40px) hue-rotate(360deg); }
-    }
-
-    @keyframes rotate-flow-2 {
-      0%   { transform: rotate(0deg)   scale(1.2) translate(-10%, 10%); filter: blur(50px) hue-rotate(0deg); }
-      33%  { transform: rotate(120deg) scale(1)   translate(5%, -5%);   filter: blur(35px) hue-rotate(120deg); }
-      66%  { transform: rotate(240deg) scale(1.1) translate(-5%, 5%);   filter: blur(45px) hue-rotate(240deg); }
-      100% { transform: rotate(360deg) scale(1.2) translate(-10%, 10%); filter: blur(50px) hue-rotate(360deg); }
-    }
-
-    @keyframes rotate-flow-3 {
-      0%   { transform: rotate(0deg)   scale(0.9) translate(15%, -15%); filter: blur(30px) hue-rotate(0deg); }
-      40%  { transform: rotate(144deg) scale(1.3) translate(-10%, 10%); filter: blur(55px) hue-rotate(144deg); }
-      80%  { transform: rotate(288deg) scale(1)   translate(5%, -5%);   filter: blur(40px) hue-rotate(288deg); }
-      100% { transform: rotate(360deg) scale(0.9) translate(15%, -15%); filter: blur(30px) hue-rotate(360deg); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .gradient-layer-1 { animation-duration: 60s; }
-      .gradient-layer-2 { animation-duration: 80s; }
-      .gradient-layer-3 { animation-duration: 100s; }
-    }
+    /* animations removed for static background */
   `;
 
   const vars = `

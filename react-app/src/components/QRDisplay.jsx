@@ -31,16 +31,19 @@ export default function QRDisplay() {
         }
         .qr-label {
           display: inline-flex; align-items: center; justify-content: center;
-          padding: 8px 14px;
+          padding: 14px 22px;
           border-radius: 9999px; /* pill */
           background: #ffffff;
           color: #0b1324;
           font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-          font-weight: 800;
+          font-weight: 900;
           letter-spacing: 0.02em;
           border: 1px solid rgba(0,0,0,0.06);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08);
-          font-size: clamp(12px, 2vw, 14px);
+          box-shadow: 0 10px 28px rgba(0,0,0,0.20), 0 2px 6px rgba(0,0,0,0.08);
+          font-size: clamp(18px, 3.2vw, 32px);
+          line-height: 1.15;
+          text-align: center;
+          max-width: 90vw;
         }
       `}</style>
       <div className="qr-wrap">

@@ -39,8 +39,7 @@ export default function WelcomeText({ name }) {
         }
       `}</style>
       <div className="welcome">
-        <h1 className="pill pill-lg">Welcome, {name || 'Friend'}!</h1>
-        <p className="pill pill-sm">Enjoy the view — videos or QR codes are available.</p>
+        <h1 className="pill pill-lg">{name ? `Welcome, ${name}!` : 'Welcome to Duluth Dental Center'}</h1>
       </div>
     </>
   );

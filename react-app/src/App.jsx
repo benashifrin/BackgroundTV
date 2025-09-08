@@ -8,7 +8,7 @@ const IDLE_HIDE_MS = 4000;
 
 export default function App() {
   const [visibleUI, setVisibleUI] = useState(true);
-  const [name, setName] = useState(() => localStorage.getItem('welcomeName') || 'Friend');
+  const [name, setName] = useState(() => localStorage.getItem('welcomeName') || '');
   const idleTimer = useRef(null);
 
   // Idle hide/show controller (note: won’t be interactive when attached behind icons)
@@ -34,7 +34,7 @@ export default function App() {
 
   useEffect(() => {
     const val = (name || '').slice(0, 64).trim();
-    localStorage.setItem('welcomeName', val || 'Friend');
+    localStorage.setItem('welcomeName', val);
   }, [name]);
 
   const toolbarStyle = useMemo(() => ({

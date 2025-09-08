@@ -13,14 +13,14 @@
     "build": "npm run build:react",
     "dist": "npm run build && electron-builder --publish never"
   },
-  "dependencies": {},
   "optionalDependencies": {
     "ffi-napi": "4.0.3",
     "ref-napi": "3.0.3"
   },
   "devDependencies": {
     "electron": "31.7.5",
-    "electron-builder": "24.13.3"
+    "electron-builder": "24.13.3",
+    "electron-rebuild": "^3.2.9"
   },
   "build": {
     "appId": "com.example.livewallpaper",
