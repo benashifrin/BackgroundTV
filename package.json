@@ -13,14 +13,13 @@
     "build": "npm run build:react",
     "dist": "npm run build && electron-builder"
   },
-  "dependencies": {
-    "electron": "31.7.5"
-  },
+  "dependencies": {},
   "optionalDependencies": {
     "ffi-napi": "4.0.3",
     "ref-napi": "3.0.3"
   },
   "devDependencies": {
+    "electron": "31.7.5",
     "electron-builder": "24.13.3"
   },
   "build": {
