@@ -19,8 +19,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install deps (root + react-app via postinstall)\n        shell: pwsh\n        run: |\n          if (Test-Path package-lock.json) { npm ci } else { npm install }
-        
+      - name: Install deps (root + react-app via postinstall)
+        shell: pwsh
+        run: |
+          if (Test-Path package-lock.json) { npm ci } else { npm install }
+
       - name: Build React UI
         run: npm run build:react
         
@@ -43,6 +46,7 @@ jobs:
           name: LiveWallpaper-windows-installer
           path: dist/*Setup*.exe
           if-no-files-found: error
+
 
 
 
