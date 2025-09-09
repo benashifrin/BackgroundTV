@@ -20,7 +20,7 @@ jobs:
           node-version: 18
 
       - name: Install deps (root + react-app via postinstall)
-        run: npm ci
+        run: npm install
         
       - name: Build React UI
         run: npm run build:react
@@ -44,5 +44,6 @@ jobs:
           name: LiveWallpaper-windows-installer
           path: dist/*Setup*.exe
           if-no-files-found: error
+
 
 
