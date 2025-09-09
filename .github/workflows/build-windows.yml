@@ -10,9 +10,6 @@ jobs:
     runs-on: windows-latest
     env:
       CI: true
-      # Avoid permission issues and speed up repeated builds
-      ELECTRON_BUILDER_CACHE: ${{ runner.temp }}\eb_cache
-      APP_BUILDER_CACHE: ${{ runner.temp }}\eb_cache\app-builder
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LiveWallpaper-windows-portable
-          path: BackgroundTV/dist/LiveWallpaper.exe
+          path: BackgroundTV/dist/*.exe
           if-no-files-found: error
 
       - name: Build NSIS installer (no native rebuild, no signing)
@@ -51,3 +48,4 @@ jobs:
           name: LiveWallpaper-windows-installer
           path: BackgroundTV/dist/*Setup*.exe
           if-no-files-found: error
+
