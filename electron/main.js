@@ -2,7 +2,7 @@
 // Creates fullscreen window and attaches to Windows desktop "WorkerW" (behind icons)
 
 const path = require('path');
-const { app, BrowserWindow, shell, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, globalShortcut, Tray, Menu, nativeImage, screen } = require('electron');
 console.log('[electron] main starting');
 
 const isWin = process.platform === 'win32';
@@ -135,12 +135,17 @@ function createTray() {
 const createWindow = async () => {
   console.log('[electron] creating BrowserWindow...');
   const useSafe = safeMode && !overlayMode;
+  const isPkg = app.isPackaged === true;
+  const work = screen.getPrimaryDisplay().workArea;
+  const useWorkArea = isPkg && !overlayMode && process.env.FULLSCREEN !== '1';
   mainWindow = new BrowserWindow({
-    width: useSafe ? 1280 : 1920,
-    height: useSafe ? 800 : 1080,
+    x: useWorkArea ? work.x : undefined,
+    y: useWorkArea ? work.y : undefined,
+    width: useWorkArea ? work.width : (useSafe ? 1280 : 1920),
+    height: useWorkArea ? work.height : (useSafe ? 800 : 1080),
     frame: overlayMode ? false : (useSafe ? true : false),
-    fullscreen: overlayMode ? true : (useSafe ? false : true),
-    resizable: useSafe ? true : false,
+    fullscreen: overlayMode ? true : (useWorkArea ? false : (useSafe ? false : true)),
+    resizable: useWorkArea ? false : (useSafe ? true : false),
     transparent: useSafe ? false : true,
     backgroundColor: useSafe ? '#000000' : '#00000000',
     show: false,                                          // show after ready-to-show to avoid flicker
