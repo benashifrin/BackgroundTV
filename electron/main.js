@@ -8,6 +8,7 @@ console.log('[electron] main starting');
 const isWin = process.platform === 'win32';
 const safeMode = process.env.SAFE_MODE === '1';
 const overlayMode = process.env.OVERLAY_MODE === '1'; // frameless fullscreen with alwaysOnTop
+const multiMon = process.env.MULTI_MON === '1' || (process.argv || []).includes('--multi-mon');
 console.log('[electron] isWin=', isWin, 'SAFE_MODE=', safeMode, 'NO_ATTACH=', process.env.NO_ATTACH);
 
 // In safe mode, disable GPU to avoid possible freezes with transparent fullscreen windows
@@ -90,6 +91,7 @@ let attachToWorkerw = async (win) => {
 };
 
 let mainWindow;
+let windows = [];
 let tray = null;
 
 function createTray() {
@@ -132,20 +134,19 @@ function createTray() {
   } catch (_) {}
 }
 
-const createWindow = async () => {
+const createWindowForBounds = async (bounds) => {
   console.log('[electron] creating BrowserWindow...');
   const useSafe = safeMode && !overlayMode;
   const isPkg = app.isPackaged === true;
-  const work = screen.getPrimaryDisplay().workArea;
   const useWorkArea = isPkg && !overlayMode && process.env.FULLSCREEN !== '1';
-  mainWindow = new BrowserWindow({
-    x: useWorkArea ? work.x : undefined,
-    y: useWorkArea ? work.y : undefined,
-    width: useWorkArea ? work.width : (useSafe ? 1280 : 1920),
-    height: useWorkArea ? work.height : (useSafe ? 800 : 1080),
+  const opts = {
+    x: bounds?.x,
+    y: bounds?.y,
+    width: bounds?.width ?? (useSafe ? 1280 : 1920),
+    height: bounds?.height ?? (useSafe ? 800 : 1080),
     frame: overlayMode ? false : (useSafe ? true : false),
     fullscreen: overlayMode ? true : (useWorkArea ? false : (useSafe ? false : true)),
-    resizable: useWorkArea ? false : (useSafe ? true : false),
+    resizable: bounds ? false : (useWorkArea ? false : (useSafe ? true : false)),
     transparent: useSafe ? false : true,
     backgroundColor: useSafe ? '#000000' : '#00000000',
     show: false,                                          // show after ready-to-show to avoid flicker
@@ -157,31 +158,33 @@ const createWindow = async () => {
       webSecurity: true,
       sandbox: true
     }
-  });
+  };
+
+  const win = new BrowserWindow(opts);
 
   // Load UI: dev server when provided, else built files
   const devUrl = process.env.VITE_DEV_SERVER_URL || process.env.ELECTRON_START_URL;
   if (devUrl) {
     console.log('[electron] loading dev URL:', devUrl);
-    await mainWindow.loadURL(devUrl);
+    await win.loadURL(devUrl);
   } else {
     const indexPath = path.join(__dirname, '..', 'react-app', 'dist', 'index.html');
     console.log('[electron] loading file:', indexPath);
-    await mainWindow.loadFile(indexPath);
+    await win.loadFile(indexPath);
   }
 
-  mainWindow.once('ready-to-show', async () => {
+  win.once('ready-to-show', async () => {
     console.log('[electron] ready-to-show');
-    mainWindow.show();
+    win.show();
 
     // Attach behind icons (WorkerW). Set NO_ATTACH=1 to keep interactive foreground mode.
     if (overlayMode) {
       try {
         if (process.platform === 'darwin') {
-          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+          win.setAlwaysOnTop(true, 'screen-saver');
         } else {
           // Windows/Linux: no special level, just topmost
-          mainWindow.setAlwaysOnTop(true);
+          win.setAlwaysOnTop(true);
         }
         console.log('[electron] overlay mode: alwaysOnTop enabled');
       } catch (e) {
@@ -191,7 +194,7 @@ const createWindow = async () => {
       const shouldAttach = process.env.NO_ATTACH !== '1' && !app.isPackaged;
       if (shouldAttach) {
         console.log('[electron] attaching to WorkerW...');
-        await attachToWorkerw(mainWindow);
+        await attachToWorkerw(win);
       } else {
         console.log('[electron] skipping WorkerW attach (NO_ATTACH=1 or packaged)');
       }
@@ -199,7 +202,7 @@ const createWindow = async () => {
   });
 
   // Ensure window.open and target=_blank open in the user's default browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+  win.webContents.setWindowOpenHandler(({ url }) => {
     try {
       if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
         console.log(`[electron] window.open -> ${url}`);
@@ -232,17 +235,35 @@ const createWindow = async () => {
   });
 
   // Keep size synced with display changes
-  mainWindow.on('resize', () => {
-    const [w, h] = mainWindow.getSize();
-    mainWindow.setSize(w, h);
+  win.on('resize', () => {
+    const [w, h] = win.getSize();
+    win.setSize(w, h);
   });
 
-  mainWindow.on('closed', () => (mainWindow = null));
+  win.on('closed', () => {
+    windows = windows.filter(x => x !== win);
+    if (win === mainWindow) mainWindow = null;
+  });
+
+  return win;
 };
 
 app.whenReady().then(() => {
   console.log('[electron] app ready');
-  createWindow();
+  if (multiMon) {
+    const displays = screen.getAllDisplays();
+    console.log(`[electron] multiMon enabled: creating ${displays.length} windows`);
+    for (const d of displays) {
+      const b = app.isPackaged && !overlayMode && process.env.FULLSCREEN !== '1' ? d.workArea : d.bounds;
+      const win = createWindowForBounds(b);
+      windows.push(win);
+    }
+    if (windows.length > 0) mainWindow = windows[0];
+  } else {
+    const win = createWindowForBounds(app.isPackaged && !overlayMode && process.env.FULLSCREEN !== '1' ? screen.getPrimaryDisplay().workArea : undefined);
+    mainWindow = win;
+    windows = [win];
+  }
   createTray();
   try { globalShortcut.register('Control+Alt+Q', () => app.quit()); } catch (_) {}
 
