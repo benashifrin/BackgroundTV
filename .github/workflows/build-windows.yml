@@ -21,31 +21,28 @@ jobs:
 
       - name: Install deps (root + react-app via postinstall)
         run: npm ci
-        working-directory: BackgroundTV
-
+        
       - name: Build React UI
         run: npm run build:react
-        working-directory: BackgroundTV
-
+        
       - name: Build portable EXE (no native rebuild, no signing)
         run: npx electron-builder --win portable --config.npmRebuild=false --config.win.sign=false --publish never
-        working-directory: BackgroundTV
-
+        
       - name: Upload Portable artifact (.exe)
         uses: actions/upload-artifact@v4
         with:
           name: LiveWallpaper-windows-portable
-          path: BackgroundTV/dist/*.exe
+          path: dist/*.exe
           if-no-files-found: error
 
       - name: Build NSIS installer (no native rebuild, no signing)
         run: npx electron-builder --win nsis --config.npmRebuild=false --config.win.sign=false --publish never
-        working-directory: BackgroundTV
-
+        
       - name: Upload NSIS installer (.exe)
         uses: actions/upload-artifact@v4
         with:
           name: LiveWallpaper-windows-installer
-          path: BackgroundTV/dist/*Setup*.exe
+          path: dist/*Setup*.exe
           if-no-files-found: error
+
 
