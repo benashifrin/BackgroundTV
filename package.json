@@ -39,7 +39,7 @@
       "target": "nsis",
       "icon": "build/icon.ico",
       "sign": "./scripts/skipSign.js"
-    },
+    , "signAndEditResources": false},
     "nsis": {
       "oneClick": true,
       "perMachine": false,
@@ -47,5 +47,6 @@
     }
   }
 }
+
 
 
