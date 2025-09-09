@@ -3,7 +3,7 @@ name: Build Windows EXE (Portable)
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, ci/nsis-installer ]
 
 jobs:
   build-windows:
@@ -34,10 +34,20 @@ jobs:
         run: npx electron-builder --win portable --config.npmRebuild=false --config.win.sign=false --publish never
         working-directory: BackgroundTV
 
-      - name: Upload artifact (.exe)
+      - name: Upload Portable artifact (.exe)
         uses: actions/upload-artifact@v4
         with:
           name: LiveWallpaper-windows-portable
-          path: BackgroundTV/dist/*.exe
+          path: BackgroundTV/dist/LiveWallpaper.exe
           if-no-files-found: error
 
+      - name: Build NSIS installer (no native rebuild, no signing)
+        run: npx electron-builder --win nsis --config.npmRebuild=false --config.win.sign=false --publish never
+        working-directory: BackgroundTV
+
+      - name: Upload NSIS installer (.exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiveWallpaper-windows-installer
+          path: BackgroundTV/dist/*Setup*.exe
+          if-no-files-found: error
