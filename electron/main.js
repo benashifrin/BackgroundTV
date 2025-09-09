@@ -9,6 +9,17 @@ const isWin = process.platform === 'win32';
 const safeMode = process.env.SAFE_MODE === '1';
 const overlayMode = process.env.OVERLAY_MODE === '1'; // frameless fullscreen with alwaysOnTop
 const multiMon = process.env.MULTI_MON === '1' || (process.argv || []).includes('--multi-mon');
+const secondaryMode = process.env.SECONDARY === '1' || (process.argv || []).includes('--secondary');
+const displayIndexArg = (() => {
+  try {
+    const a = (process.argv || []).find(v => typeof v === 'string' && v.startsWith('--display-index='));
+    if (!a) return undefined;
+    const n = parseInt(a.split('=')[1], 10);
+    return Number.isFinite(n) ? n : undefined;
+  } catch (_) { return undefined; }
+})();
+const displayIndexEnv = (() => { try { const n = parseInt(process.env.DISPLAY_INDEX || '', 10); return Number.isFinite(n) ? n : undefined; } catch(_) { return undefined; }})();
+const displayIndex = displayIndexEnv ?? displayIndexArg; // 1-based index if provided
 console.log('[electron] isWin=', isWin, 'SAFE_MODE=', safeMode, 'NO_ATTACH=', process.env.NO_ATTACH);
 
 // In safe mode, disable GPU to avoid possible freezes with transparent fullscreen windows
@@ -260,7 +271,17 @@ app.whenReady().then(() => {
     }
     if (windows.length > 0) mainWindow = windows[0];
   } else {
-    const win = createWindowForBounds(app.isPackaged && !overlayMode && process.env.FULLSCREEN !== '1' ? screen.getPrimaryDisplay().workArea : undefined);
+    const displays = screen.getAllDisplays();
+    let target = screen.getPrimaryDisplay();
+    if (typeof displayIndex === 'number' && displays.length >= displayIndex && displayIndex > 0) {
+      target = displays[displayIndex - 1];
+      console.log(`[electron] using display index ${displayIndex} -> id=${target.id}`);
+    } else if (secondaryMode && displays.length > 1) {
+      target = displays.find(d => d.id !== screen.getPrimaryDisplay().id) || displays[0];
+      console.log(`[electron] using secondary display id=${target.id}`);
+    }
+    const b = app.isPackaged && !overlayMode && process.env.FULLSCREEN !== '1' ? target.workArea : target.bounds;
+    const win = createWindowForBounds(b);
     mainWindow = win;
     windows = [win];
   }
