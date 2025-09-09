@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Background from './components/Background.jsx';
-import WelcomeText from './components/WelcomeText.jsx';
-import QRDisplay from './components/QRDisplay.jsx';
+import TopSection from './components/TopSection.jsx';
 import VideoStrip from './components/VideoStrip.jsx';
 
 const IDLE_HIDE_MS = 4000;
@@ -75,10 +74,8 @@ export default function App() {
         />
       </div>
 
-      <WelcomeText name={name} />
-
-      {/* Show QR code with videos below */}
-      <QRDisplay />
+      {/* Top section: practice name + QR + label, responsive and centered */}
+      <TopSection practiceName={name ? `Welcome, ${name}!` : 'Welcome to Duluth Dental Center'} />
       <VideoStrip />
     </>
   );
