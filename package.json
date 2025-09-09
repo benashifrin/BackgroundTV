@@ -9,6 +9,8 @@
     "build:react": "cd react-app && npm run build",
     "dev": "npm run build:react && electron .",
     "dev:hot": "electron .",
+    "dev:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\dev-start.ps1",
+    "dev:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\dev-stop.ps1",
     "start": "electron .",
     "build": "npm run build:react",
     "dist": "npm run build && electron-builder --publish never"

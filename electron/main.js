@@ -7,6 +7,7 @@ console.log('[electron] main starting');
 
 const isWin = process.platform === 'win32';
 const safeMode = process.env.SAFE_MODE === '1';
+const overlayMode = process.env.OVERLAY_MODE === '1'; // frameless fullscreen with alwaysOnTop
 console.log('[electron] isWin=', isWin, 'SAFE_MODE=', safeMode, 'NO_ATTACH=', process.env.NO_ATTACH);
 
 // In safe mode, disable GPU to avoid possible freezes with transparent fullscreen windows
@@ -133,14 +134,15 @@ function createTray() {
 
 const createWindow = async () => {
   console.log('[electron] creating BrowserWindow...');
+  const useSafe = safeMode && !overlayMode;
   mainWindow = new BrowserWindow({
-    width: safeMode ? 1280 : 1920,
-    height: safeMode ? 800 : 1080,
-    frame: safeMode ? true : false,
-    fullscreen: safeMode ? false : true,
-    resizable: safeMode ? true : false,
-    transparent: safeMode ? false : true,                 // avoid transparent fullscreen in safe mode
-    backgroundColor: safeMode ? '#000000' : '#00000000',  // solid in safe mode
+    width: useSafe ? 1280 : 1920,
+    height: useSafe ? 800 : 1080,
+    frame: overlayMode ? false : (useSafe ? true : false),
+    fullscreen: overlayMode ? true : (useSafe ? false : true),
+    resizable: useSafe ? true : false,
+    transparent: useSafe ? false : true,
+    backgroundColor: useSafe ? '#000000' : '#00000000',
     show: false,                                          // show after ready-to-show to avoid flicker
     autoHideMenuBar: !safeMode,
     webPreferences: {
@@ -168,12 +170,26 @@ const createWindow = async () => {
     mainWindow.show();
 
     // Attach behind icons (WorkerW). Set NO_ATTACH=1 to keep interactive foreground mode.
-    const shouldAttach = process.env.NO_ATTACH !== '1' && !app.isPackaged;
-    if (shouldAttach) {
-      console.log('[electron] attaching to WorkerW...');
-      await attachToWorkerw(mainWindow);
+    if (overlayMode) {
+      try {
+        if (process.platform === 'darwin') {
+          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+        } else {
+          // Windows/Linux: no special level, just topmost
+          mainWindow.setAlwaysOnTop(true);
+        }
+        console.log('[electron] overlay mode: alwaysOnTop enabled');
+      } catch (e) {
+        console.warn('[electron] setAlwaysOnTop failed:', e);
+      }
     } else {
-      console.log('[electron] skipping WorkerW attach (NO_ATTACH=1 or packaged)');
+      const shouldAttach = process.env.NO_ATTACH !== '1' && !app.isPackaged;
+      if (shouldAttach) {
+        console.log('[electron] attaching to WorkerW...');
+        await attachToWorkerw(mainWindow);
+      } else {
+        console.log('[electron] skipping WorkerW attach (NO_ATTACH=1 or packaged)');
+      }
     }
   });
 

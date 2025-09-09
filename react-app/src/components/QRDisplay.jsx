@@ -5,7 +5,7 @@ export default function QRDisplay() {
   // Single, non-rotating QR code. Update the URL to your real referral link.
   const current = {
     label: 'Refer a Friend. Get a $50 Gift Card!',
-    url: 'https://www.bestdentistduluth.com/login'
+    url: 'https://www.bestdentistduluth.com/login?utm_source=TVS&utm_medium=tv&utm_campaign=referral&utm_id=4'
   };
 
   return (
