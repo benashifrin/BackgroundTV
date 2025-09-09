@@ -10,6 +10,7 @@ jobs:
     runs-on: windows-latest
     env:
       CI: true
+      CSC_IDENTITY_AUTO_DISCOVERY: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +29,7 @@ jobs:
         run: npm run build:react
         
       - name: Build portable EXE (no native rebuild, no signing)
-        run: npx electron-builder --win portable --config.npmRebuild=false --config.win.sign=false --publish never
+        run: npx electron-builder --win portable --config.npmRebuild=false  --publish never
         
       - name: Upload Portable artifact (.exe)
         uses: actions/upload-artifact@v4
@@ -38,7 +39,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build NSIS installer (no native rebuild, no signing)
-        run: npx electron-builder --win nsis --config.npmRebuild=false --config.win.sign=false --publish never
+        run: npx electron-builder --win nsis --config.npmRebuild=false  --publish never
         
       - name: Upload NSIS installer (.exe)
         uses: actions/upload-artifact@v4
@@ -46,6 +47,8 @@ jobs:
           name: LiveWallpaper-windows-installer
           path: dist/*Setup*.exe
           if-no-files-found: error
+
+
 
 
 
